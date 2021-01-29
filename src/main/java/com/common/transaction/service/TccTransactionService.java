@@ -125,7 +125,7 @@ public class TccTransactionService extends TransactionService {
             processesEntity = this.setAndLockProcessModelSkipLocked(processesEntity.getId());
             if (null == processesEntity) {
                 log.info("process不存在,默认任务未创建，返回成功"); //try 事务only-rollback 才会查不到，否则cancel不会无故发来
-                return new YimqWrapResponse(YimqResponseCodeConstants.FAIL,YimqResponseMessageConstants.DATA_QUERY_EXCEPTION);
+                return new YimqWrapResponse(YimqResponseCodeConstants.SUCCESS,YimqResponseMessageConstants.SUCCESS);
             }
             if (processesEntity.getStatus() == ProcessesStatusConstants.CANCELED ) {
                 return new YimqWrapResponse(YimqResponseCodeConstants.SUCCESS, YimqResponseMessageConstants.MESSAGE_IS_CONSUMED);
