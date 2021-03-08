@@ -30,4 +30,5 @@ public interface ProcessDao {
     List<ProcessesEntity> selectProcessForUpdate(List<BigInteger> processIdList, List<Integer> processStatusList);
 
     int clearProcedure(String type, @Param("canClearProcessId") String canClearProcessId);
+
 }

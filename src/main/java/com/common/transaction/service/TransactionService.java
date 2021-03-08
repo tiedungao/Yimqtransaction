@@ -169,6 +169,7 @@ public abstract class TransactionService {
         if (null == processIdList || 0 == processIdList.size()) {
             return new ArrayList<>();
         }
+        List<BigInteger> failedProcessesIdList = new ArrayList<>();
         List<Integer> processStatusList = new ArrayList<>();
         //拼接状态查询
         processStatusList.add(ProcessesStatusConstants.DONE);
@@ -184,8 +185,20 @@ public abstract class TransactionService {
         if (0 != canClearProcessIdList.size()) {
             processDao.clearProcedure("process",JSON.toJSONString(canClearProcessIdList));
         }
-
-        return processIdList;
+        if (0 != processIdList.size()) {
+            processStatusList.clear();
+            processStatusList.add(ProcessesStatusConstants.CANCELLING);
+            processStatusList.add(ProcessesStatusConstants.DOING);
+            processStatusList.add(ProcessesStatusConstants.PREPARED);
+            processStatusList.add(ProcessesStatusConstants.PREPARING);
+            List<ProcessesEntity> failedProcessesEntityList  = processDao.selectProcessForUpdate(processIdList,processStatusList);
+            if (null != failedProcessesEntityList) {
+                for (ProcessesEntity processesEntity:failedProcessesEntityList) {
+                    failedProcessesIdList.add(processesEntity.getId());
+                }
+            }
+        }
+        return failedProcessesIdList;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW,rollbackFor = Exception.class)

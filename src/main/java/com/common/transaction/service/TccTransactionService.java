@@ -11,10 +11,7 @@ import com.common.transaction.http.YimqWrapResponse;
 import com.common.transaction.utils.YimqCommonUtils;
 import org.apache.log4j.Logger;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -122,7 +119,7 @@ public class TccTransactionService extends TransactionService {
     public synchronized Object runCancel(ProcessesEntity processesEntity,String action) {
         Object result = null;
         try {
-            processesEntity = this.setAndLockProcessModelSkipLocked(processesEntity.getId());
+            processesEntity = this.setAndLockProcessModel(processesEntity.getId());
             if (null == processesEntity) {
                 log.info("process不存在,默认任务未创建，返回成功"); //try 事务only-rollback 才会查不到，否则cancel不会无故发来
                 return new YimqWrapResponse(YimqResponseCodeConstants.SUCCESS,YimqResponseMessageConstants.SUCCESS);
