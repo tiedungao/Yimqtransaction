@@ -54,7 +54,7 @@
         delete from yimq_messages where message_id = #{messageId,jdbcType=BIGINT}
     </delete>
 
-    <select id="selectMessageListByIdForUpdate" resultType="com.common.transaction.entity.MessageEntity">
+    <select id="selectMessageListByIdForUpdate" resultType="java.math.BigInteger">
         select message_id from yimq_messages
         where message_id in
         <foreach collection="messageIdList" item="messageId" index="index" open="(" close=")" separator=",">

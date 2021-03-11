@@ -25,7 +25,7 @@ public interface MessageDao {
 
     int deleteMessageByMessageId(BigInteger messageId);
 
-    List<MessageEntity> selectMessageListByIdForUpdate(List<BigInteger> messageIdList, Integer status);
+    List<BigInteger> selectMessageListByIdForUpdate(List<BigInteger> messageIdList, Integer status);
 
     int deleteMessage(@Param("messageIdList") List<BigInteger> messageIdList);
 

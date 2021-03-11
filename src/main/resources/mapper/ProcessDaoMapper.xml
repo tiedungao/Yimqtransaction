@@ -67,18 +67,20 @@
         where id = #{id,jdbcType=BIGINT}
         for update
     </select>
-    
-    <select id="selectProcessForUpdate" resultType="com.common.transaction.entity.ProcessesEntity">
+
+    <select id="selectProcessForUpdate" resultType="java.math.BigInteger">
         select id from yimq_processes
         where 1 =1
         and id in
         <foreach collection="processIdList" item="processId" index="index" open="(" close=")" separator=",">
             #{processId,jdbcType=BIGINT}
         </foreach>
-        and status in
-        <foreach collection="processStatusList" item="processStatus" index="index" open="(" close=")" separator=",">
-            #{processStatus,jdbcType=INTEGER}
-        </foreach>
+        <if test="null != processStatusList ">
+            and status in
+            <foreach collection="processStatusList" item="processStatus" index="index" open="(" close=")" separator=",">
+                #{processStatus,jdbcType=INTEGER}
+            </foreach>
+        </if>
         for update skip locked
     </select>
 

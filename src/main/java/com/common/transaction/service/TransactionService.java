@@ -145,60 +145,43 @@ public abstract class TransactionService {
             return new YimqWrapResponse(YimqResponseCodeConstants.SYSTEM_ERROR,e.getMessage());
         }
     }
-
     protected List<BigInteger> clearMessage(List<BigInteger> messageIdList,Integer status) {
         if (null == messageIdList || 0 == messageIdList.size()) {
             return new ArrayList<>();
         }
         //查询满足条件的可清理的message
-        List<MessageEntity> canClearMessageList = messageDao.selectMessageListByIdForUpdate(messageIdList,status);
-        List<BigInteger> canCleatMessageIdList = new ArrayList<>();
+        List<BigInteger> canClearMessageIdList = messageDao.selectMessageListByIdForUpdate(messageIdList,status);
+        List<BigInteger> existMessageIdList = messageDao.selectMessageListByIdForUpdate(messageIdList,null);
         //获取可清理messageIds
-        for (MessageEntity messageEntity: canClearMessageList) {
-            canCleatMessageIdList.add(messageEntity.getMessage_id());
+        //获取存在的message_id和canClearMessage_id的差值
+        existMessageIdList.removeAll(canClearMessageIdList);
+        if ( 0 != canClearMessageIdList.size()) {
+            processDao.clearProcedure("message",JSON.toJSONString(canClearMessageIdList));
         }
-        //获取总message_id和canClearMessage_id的差值
-        messageIdList.removeAll(canCleatMessageIdList);
-        if ( 0 != canCleatMessageIdList.size()) {
-            processDao.clearProcedure("message",JSON.toJSONString(canCleatMessageIdList));
-        }
-        return messageIdList;
+        return existMessageIdList;
     }
 
+    /**
+     * 清理所有可以清理的process，并返回不能清理的失败列表。如果process不存在，则默认是成功清理的process
+     * @param processIdList
+     * @return
+     */
     protected List<BigInteger> clearProcess(List<BigInteger> processIdList) {
         if (null == processIdList || 0 == processIdList.size()) {
             return new ArrayList<>();
         }
-        List<BigInteger> failedProcessesIdList = new ArrayList<>();
         List<Integer> processStatusList = new ArrayList<>();
         //拼接状态查询
         processStatusList.add(ProcessesStatusConstants.DONE);
         processStatusList.add(ProcessesStatusConstants.CANCELED);
         //查询满足清理条件的processes
-        List<ProcessesEntity> processesEntityList = processDao.selectProcessForUpdate(processIdList,processStatusList);
-        if(null == processesEntityList || 0 == processesEntityList.size()) return processIdList;
-        List canClearProcessIdList = new ArrayList<>();
-        for (ProcessesEntity processesEntity: processesEntityList) {
-            canClearProcessIdList.add(processesEntity.getId());
-        }
-        processIdList.removeAll(canClearProcessIdList);
+        List<BigInteger> canClearProcessIdList = processDao.selectProcessForUpdate(processIdList,processStatusList);
+        List<BigInteger> existProcessIdList = processDao.selectProcessForUpdate(processIdList,null);
         if (0 != canClearProcessIdList.size()) {
             processDao.clearProcedure("process",JSON.toJSONString(canClearProcessIdList));
         }
-        if (0 != processIdList.size()) {
-            processStatusList.clear();
-            processStatusList.add(ProcessesStatusConstants.CANCELLING);
-            processStatusList.add(ProcessesStatusConstants.DOING);
-            processStatusList.add(ProcessesStatusConstants.PREPARED);
-            processStatusList.add(ProcessesStatusConstants.PREPARING);
-            List<ProcessesEntity> failedProcessesEntityList  = processDao.selectProcessForUpdate(processIdList,processStatusList);
-            if (null != failedProcessesEntityList) {
-                for (ProcessesEntity processesEntity:failedProcessesEntityList) {
-                    failedProcessesIdList.add(processesEntity.getId());
-                }
-            }
-        }
-        return failedProcessesIdList;
+        existProcessIdList.removeAll(canClearProcessIdList);
+        return existProcessIdList;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW,rollbackFor = Exception.class)
